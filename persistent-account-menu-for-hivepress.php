@@ -435,6 +435,27 @@ function alter_routes( $routes ) {
 		];
 	}
 
+	// Pair the received-orders title with the forced placed-orders item.
+	// Marketplace only titles the page "Received Orders" once the vendor
+	// has placed orders of their own, because natively the "Placed
+	// Orders" item cannot appear before then. Since the placed-orders
+	// item is always forced next to it here, the plain "Orders" fallback
+	// would make the two items ambiguous, so it is upgraded while custom
+	// and already-distinct titles pass through untouched.
+	if ( isset( $routes['orders_edit_page']['title'] ) && isset( get_items()['orders_view'] ) ) {
+		$title = $routes['orders_edit_page']['title'];
+
+		$routes['orders_edit_page']['title'] = function () use ( $title ) {
+			$title = is_callable( $title ) ? call_user_func( $title ) : $title;
+
+			if ( is_user_logged_in() && hivepress()->translator->get_string( 'orders' ) === $title ) {
+				$title = esc_html__( 'Received Orders', 'hivepress-marketplace' );
+			}
+
+			return $title;
+		};
+	}
+
 	return $routes;
 }
 
