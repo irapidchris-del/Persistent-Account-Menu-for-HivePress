@@ -16,7 +16,7 @@ jobs:
       - name: Build plugin zip
         run: |
           mkdir -p build/persistent-account-menu-for-hivepress
-          cp persistent-account-menu-for-hivepress.php README.md build/persistent-account-menu-for-hivepress/
+          cp persistent-account-menu-for-hivepress.php README.md LICENSE build/persistent-account-menu-for-hivepress/
           cd build
           zip -r persistent-account-menu-for-hivepress.zip persistent-account-menu-for-hivepress
 

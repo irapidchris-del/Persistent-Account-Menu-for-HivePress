@@ -61,4 +61,4 @@ Publish a GitHub release with a tag matching the plugin version (for example `v1
 
 ## License
 
-GPLv2 or later — see <https://www.gnu.org/licenses/gpl-2.0.html>.
+GPLv3 — see the [LICENSE](LICENSE) file. This matches the license used across the HivePress ecosystem.
