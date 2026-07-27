@@ -38,6 +38,12 @@ Internals are source-verified against HivePress 1.7.26, Favorites 1.2.2, Message
 
 The plugin checks this GitHub repository for new releases and shows updates in your WordPress dashboard just like any other plugin — including one-click and automatic updates. You can also click **Check for updates** in the plugin's row on the Plugins screen to check immediately.
 
+## Translations and rewording
+
+All of the plugin's texts — notices, button labels and admin messages — are translatable under the `persistent-account-menu-for-hivepress` text domain, with a ready-made template in `languages/`. Use a plugin like [Loco Translate](https://wordpress.org/plugins/loco-translate/) to translate them, or to simply reword any text in your own language: create a translation for your site's language and only fill in the strings you want to change.
+
+The "Received Orders" and "Placed Orders" labels intentionally reuse the `hivepress-marketplace` text domain so they always match the wording used by the Marketplace extension; reword those under that text domain instead.
+
 ## Customization
 
 Two filters are provided:

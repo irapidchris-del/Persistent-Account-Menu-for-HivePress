@@ -3,10 +3,11 @@
  * Plugin Name: Persistent Account Menu for HivePress
  * Plugin URI: https://github.com/irapidchris-del/Persistent-Account-Menu-for-HivePress
  * Description: Keeps HivePress account menu items visible even when they are empty, and replaces each empty page with a helpful notice, icon and button.
- * Version: 1.2.0
+ * Version: 1.3.0
  * Author: Chris B
  * Author URI: https://community.hivepress.io/u/chrisb
  * Text Domain: persistent-account-menu-for-hivepress
+ * Domain Path: /languages
  * License: GPLv3
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Requires at least: 5.8
@@ -23,6 +24,22 @@ use HivePress\Helpers as hp;
 
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
+
+/**
+ * Loads the plugin translations.
+ *
+ * Translations are loaded from the standard locations, so translation
+ * plugins like Loco Translate can save custom wordings for any of the
+ * plugin's texts under the `persistent-account-menu-for-hivepress`
+ * text domain.
+ *
+ * @return void
+ */
+function load_textdomain() {
+	load_plugin_textdomain( 'persistent-account-menu-for-hivepress', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+}
+
+add_action( 'init', __NAMESPACE__ . '\\load_textdomain', 1 );
 
 /**
  * Gets the managed menu items.
@@ -604,7 +621,7 @@ function render_notice( $notice ) {
 		$url = hivepress()->router->get_url( hp\get_array_value( $button, 'route', '' ) );
 
 		if ( $url ) {
-			$output .= '<a href="' . esc_url( $url ) . '" class="hppam-empty__button button alt">' . esc_html( hp\get_array_value( $button, 'label', '' ) ) . '</a>';
+			$output .= '<a href="' . esc_url( $url ) . '" class="hppam-empty__button button button--primary alt">' . esc_html( hp\get_array_value( $button, 'label', '' ) ) . '</a>';
 		}
 	}
 
