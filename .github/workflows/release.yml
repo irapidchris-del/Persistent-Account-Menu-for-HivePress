@@ -1,8 +1,17 @@
-name: Attach release asset
+name: Release
 
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v1.2.0)'
+        required: true
+      notes:
+        description: 'Release notes (Markdown, optional — auto-generated if empty)'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -20,7 +29,23 @@ jobs:
           cd build
           zip -r persistent-account-menu-for-hivepress.zip persistent-account-menu-for-hivepress
 
+      - name: Create the release (manual dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release upload "$TAG" build/persistent-account-menu-for-hivepress.zip --clobber --repo "$GITHUB_REPOSITORY"
+          elif [ -n "$NOTES" ]; then
+            gh release create "$TAG" build/persistent-account-menu-for-hivepress.zip --title "$TAG" --notes "$NOTES" --target "$GITHUB_SHA" --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" build/persistent-account-menu-for-hivepress.zip --title "$TAG" --generate-notes --target "$GITHUB_SHA" --repo "$GITHUB_REPOSITORY"
+          fi
+
       - name: Upload asset to the release
+        if: github.event_name == 'release'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload "$GITHUB_REF_NAME" build/persistent-account-menu-for-hivepress.zip --clobber --repo "$GITHUB_REPOSITORY"
