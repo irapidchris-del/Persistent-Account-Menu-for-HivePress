@@ -3,7 +3,7 @@
  * Plugin Name: Persistent Account Menu for HivePress
  * Plugin URI: https://github.com/irapidchris-del/Persistent-Account-Menu-for-HivePress
  * Description: Keeps HivePress account menu items visible even when they are empty, and replaces each empty page with a helpful notice, icon and button.
- * Version: 1.3.0
+ * Version: 1.4.0
  * Author: Chris B
  * Author URI: https://community.hivepress.io/u/chrisb
  * Text Domain: persistent-account-menu-for-hivepress
@@ -42,18 +42,18 @@ function load_textdomain() {
 add_action( 'init', __NAMESPACE__ . '\\load_textdomain', 1 );
 
 /**
- * Gets the managed menu items.
+ * Gets the default managed menu items.
  *
  * Routes, orders, display conditions, empty-page redirects and page
  * block names are source-verified against HivePress 1.7.26,
  * Favorites 1.2.2, Messages 1.4.0, Bookings 1.5.5, Marketplace 1.3.15,
  * Memberships 2.2.0, Requests 1.2.5 and Search Alerts 1.1.3. Items
  * whose route is not registered (extension inactive) are skipped
- * automatically.
+ * automatically. Titles are only used for the settings screen.
  *
  * @return array<string, array<string, mixed>>
  */
-function get_items() {
+function get_default_items() {
 	static $items = null;
 
 	if ( null !== $items ) {
@@ -62,6 +62,7 @@ function get_items() {
 
 	$items = [
 		'listings_edit'      => [
+			'title'  => __( 'Listings', 'persistent-account-menu-for-hivepress' ),
 			'route'  => 'listings_edit_page',
 			'_order' => 10,
 			'notice' => [
@@ -76,6 +77,7 @@ function get_items() {
 		],
 
 		'requests_edit'      => [
+			'title'  => __( 'Requests', 'persistent-account-menu-for-hivepress' ),
 			'route'  => 'requests_edit_page',
 			'_order' => 10,
 			'notice' => [
@@ -90,6 +92,7 @@ function get_items() {
 		],
 
 		'offers_view'        => [
+			'title'  => __( 'Offers', 'persistent-account-menu-for-hivepress' ),
 			'route'  => 'offers_view_page',
 			'_order' => 15,
 			'notice' => [
@@ -104,6 +107,7 @@ function get_items() {
 		],
 
 		'listings_favorite'  => [
+			'title'  => __( 'Favorites', 'persistent-account-menu-for-hivepress' ),
 			'route'  => 'listings_favorite_page',
 			'_order' => 20,
 			'notice' => [
@@ -118,6 +122,7 @@ function get_items() {
 		],
 
 		'vendor_calendar'    => [
+			'title'  => __( 'Calendar (vendors)', 'persistent-account-menu-for-hivepress' ),
 			'route'  => 'vendor_calendar_page',
 			'_order' => 25,
 			'vendor' => true,
@@ -133,6 +138,7 @@ function get_items() {
 		],
 
 		'search_alerts_view' => [
+			'title'  => __( 'Saved Searches', 'persistent-account-menu-for-hivepress' ),
 			'route'  => 'search_alerts_view_page',
 			'_order' => 25,
 			'notice' => [
@@ -147,6 +153,7 @@ function get_items() {
 		],
 
 		'bookings_view'      => [
+			'title'  => __( 'Bookings', 'persistent-account-menu-for-hivepress' ),
 			'route'  => 'bookings_view_page',
 			'_order' => 27,
 			'notice' => [
@@ -161,6 +168,7 @@ function get_items() {
 		],
 
 		'messages_thread'    => [
+			'title'   => __( 'Messages', 'persistent-account-menu-for-hivepress' ),
 			'route'   => 'messages_thread_page',
 			'_order'  => 30,
 			'enabled' => __NAMESPACE__ . '\\is_message_storage_enabled',
@@ -176,6 +184,7 @@ function get_items() {
 		],
 
 		'memberships_view'   => [
+			'title'  => __( 'Membership', 'persistent-account-menu-for-hivepress' ),
 			'route'  => 'memberships_view_page',
 			'_order' => 35,
 			'notice' => [
@@ -190,6 +199,7 @@ function get_items() {
 		],
 
 		'orders_edit'        => [
+			'title'  => __( 'Received Orders (vendors)', 'persistent-account-menu-for-hivepress' ),
 			'route'  => 'orders_edit_page',
 			'_order' => 35,
 			'vendor' => true,
@@ -201,6 +211,7 @@ function get_items() {
 		],
 
 		'payouts_view'       => [
+			'title'  => __( 'Payouts (vendors)', 'persistent-account-menu-for-hivepress' ),
 			'route'  => 'payouts_view_page',
 			'_order' => 45,
 			'vendor' => true,
@@ -217,6 +228,7 @@ function get_items() {
 	// already render native WooCommerce empty states, so no notice is set.
 	if ( function_exists( 'wc_get_endpoint_url' ) && function_exists( 'wc_get_page_permalink' ) && function_exists( 'wc_get_account_menu_items' ) ) {
 		$items['orders_view'] = [
+			'title'  => __( 'Orders (WooCommerce)', 'persistent-account-menu-for-hivepress' ),
 			'label'  => hp\get_array_value( wc_get_account_menu_items(), 'orders', __( 'Orders', 'persistent-account-menu-for-hivepress' ) ),
 			'url'    => wc_get_endpoint_url( 'orders', '', wc_get_page_permalink( 'myaccount' ) ),
 			'_order' => 40,
@@ -224,6 +236,7 @@ function get_items() {
 
 		if ( class_exists( 'WC_Subscriptions' ) ) {
 			$items['subscriptions_view'] = [
+				'title'  => __( 'Subscriptions (WooCommerce)', 'persistent-account-menu-for-hivepress' ),
 				'label'  => hp\get_array_value( wc_get_account_menu_items(), 'subscriptions', __( 'Subscriptions', 'persistent-account-menu-for-hivepress' ) ),
 				'url'    => wc_get_endpoint_url( 'subscriptions', '', wc_get_page_permalink( 'myaccount' ) ),
 				'_order' => 42,
@@ -231,11 +244,41 @@ function get_items() {
 		}
 	}
 
+	return $items;
+}
+
+/**
+ * Gets the managed menu items.
+ *
+ * Applies the admin selection from HivePress > Settings > Default Menu
+ * Items, then the developer filter. Items the admin chose not to force
+ * are left completely untouched and keep the stock behavior.
+ *
+ * @return array<string, array<string, mixed>>
+ */
+function get_items() {
+	static $items = null;
+
+	if ( null !== $items ) {
+		return $items;
+	}
+
+	$items = get_default_items();
+
+	// Keep only the items enabled in the settings. Until the setting is
+	// saved for the first time, every item is managed.
+	$enabled = get_option( 'hp_hppam_items', null );
+
+	if ( null !== $enabled ) {
+		$items = array_intersect_key( $items, array_flip( array_filter( (array) $enabled ) ) );
+	}
+
 	/**
 	 * Filters the menu items managed by Persistent Account Menu.
 	 *
 	 * Unset an item here to stop forcing it, or adjust its notice text,
-	 * icon codepoint and button.
+	 * icon codepoint and button. The admin selection from the settings
+	 * is already applied at this point.
 	 *
 	 * @hook hppam/v1/items
 	 */
@@ -243,6 +286,68 @@ function get_items() {
 
 	return $items;
 }
+
+/**
+ * Gets the menu item choices for the settings field.
+ *
+ * Only items whose extension is currently active are offered.
+ *
+ * @return array<string, string>
+ */
+function get_item_options() {
+	$options = [];
+
+	foreach ( get_default_items() as $name => $item ) {
+
+		// Skip items whose extension is inactive.
+		if ( isset( $item['route'] ) && ! hivepress()->router->get_route( $item['route'] ) ) {
+			continue;
+		}
+
+		$options[ $name ] = hp\get_array_value( $item, 'title', $name );
+	}
+
+	return $options;
+}
+
+/**
+ * Adds the plugin settings tab.
+ *
+ * The tab is rendered and saved by HivePress itself, with the field
+ * stored as the `hp_hppam_items` option.
+ *
+ * @param array<string, mixed> $settings Settings configuration.
+ * @return array<string, mixed>
+ */
+function alter_settings( $settings ) {
+	$options = get_item_options();
+
+	$settings['persistent_menu'] = [
+		'title'    => __( 'Default Menu Items', 'persistent-account-menu-for-hivepress' ),
+		'_order'   => 200,
+
+		'sections' => [
+			'items' => [
+				'description' => __( 'Choose the account menu items that stay visible even when they are empty. Unchecked items are left untouched and keep the default behavior, appearing only once there is something to show.', 'persistent-account-menu-for-hivepress' ),
+				'_order'      => 10,
+
+				'fields'      => [
+					'hppam_items' => [
+						'label'   => __( 'Menu Items', 'persistent-account-menu-for-hivepress' ),
+						'type'    => 'checkboxes',
+						'options' => $options,
+						'default' => array_keys( $options ),
+						'_order'  => 10,
+					],
+				],
+			],
+		],
+	];
+
+	return $settings;
+}
+
+add_filter( 'hivepress/v1/settings', __NAMESPACE__ . '\\alter_settings' );
 
 /**
  * Checks if message storage is enabled.

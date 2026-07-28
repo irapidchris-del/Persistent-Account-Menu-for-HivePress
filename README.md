@@ -22,6 +22,10 @@ Items are only forced when the matching extension is active, and vendor-only ite
 
 Internals are source-verified against HivePress 1.7.26, Favorites 1.2.2, Messages 1.4.0, Bookings 1.5.5, Marketplace 1.3.15, Memberships 2.2.0, Requests 1.2.5 and Search Alerts 1.1.3.
 
+## Settings
+
+Under **HivePress → Settings → Default Menu Items** you can pick which menu items are force-displayed. Until the setting is saved for the first time, all items are forced. Unchecked items are left completely untouched — they revert to the default HivePress behavior and only appear once there is something to show. Only items whose extension is active are listed.
+
 ## Requirements
 
 - WordPress 5.8 or newer
