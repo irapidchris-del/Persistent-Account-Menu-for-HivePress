@@ -3,7 +3,7 @@
  * Plugin Name: Persistent Account Menu for HivePress
  * Plugin URI: https://github.com/irapidchris-del/Persistent-Account-Menu-for-HivePress
  * Description: Keeps HivePress account menu items visible even when they are empty, and replaces each empty page with a helpful notice, icon and button.
- * Version: 1.4.0
+ * Version: 1.5.0
  * Author: Chris B
  * Author URI: https://community.hivepress.io/u/chrisb
  * Text Domain: persistent-account-menu-for-hivepress
@@ -273,6 +273,29 @@ function get_items() {
 		$items = array_intersect_key( $items, array_flip( array_filter( (array) $enabled ) ) );
 	}
 
+	// Apply the button customizations from the settings. A custom URL
+	// replaces the default route link, and setting both a label and a
+	// URL adds a button to pages that have none by default.
+	foreach ( $items as $name => $item ) {
+		if ( ! isset( $item['notice'] ) ) {
+			continue;
+		}
+
+		$label = get_option( 'hp_hppam_button_label_' . $name );
+
+		if ( $label ) {
+			$items[ $name ]['notice']['button']['label'] = $label;
+		}
+
+		$url = get_option( 'hp_hppam_button_url_' . $name );
+
+		if ( $url ) {
+			$items[ $name ]['notice']['button']['url'] = $url;
+
+			unset( $items[ $name ]['notice']['button']['route'] );
+		}
+	}
+
 	/**
 	 * Filters the menu items managed by Persistent Account Menu.
 	 *
@@ -343,6 +366,45 @@ function alter_settings( $settings ) {
 			],
 		],
 	];
+
+	// Add the per-page button settings.
+	$order = 20;
+
+	foreach ( get_default_items() as $name => $item ) {
+		if ( ! isset( $item['notice'] ) || ! isset( $options[ $name ] ) ) {
+			continue;
+		}
+
+		$button = hp\get_array_value( $item['notice'], 'button' );
+
+		$settings['persistent_menu']['sections'][ 'button_' . $name ] = [
+			'title'       => $item['title'],
+
+			'description' => $button
+				? __( 'Customize the button on this empty page. Leave a field blank to keep the default.', 'persistent-account-menu-for-hivepress' )
+				: __( 'This page has no button by default. Set both a label and a URL to add one.', 'persistent-account-menu-for-hivepress' ),
+
+			'_order'      => $order,
+
+			'fields'      => [
+				'hppam_button_label_' . $name => [
+					'label'       => __( 'Button Label', 'persistent-account-menu-for-hivepress' ),
+					'type'        => 'text',
+					'placeholder' => $button ? hp\get_array_value( $button, 'label', '' ) : '',
+					'_order'      => 10,
+				],
+
+				'hppam_button_url_' . $name   => [
+					'label'       => __( 'Button URL', 'persistent-account-menu-for-hivepress' ),
+					'description' => __( 'Enter a full URL or a relative path like /listings.', 'persistent-account-menu-for-hivepress' ),
+					'type'        => 'text',
+					'_order'      => 20,
+				],
+			],
+		];
+
+		$order += 10;
+	}
 
 	return $settings;
 }
@@ -723,10 +785,17 @@ function render_notice( $notice ) {
 	$button = hp\get_array_value( $notice, 'button' );
 
 	if ( $button ) {
-		$url = hivepress()->router->get_url( hp\get_array_value( $button, 'route', '' ) );
+		$url   = hp\get_array_value( $button, 'url' );
+		$route = hp\get_array_value( $button, 'route' );
 
-		if ( $url ) {
-			$output .= '<a href="' . esc_url( $url ) . '" class="hppam-empty__button button button--primary alt">' . esc_html( hp\get_array_value( $button, 'label', '' ) ) . '</a>';
+		if ( ! $url && $route ) {
+			$url = hivepress()->router->get_url( $route );
+		}
+
+		$label = hp\get_array_value( $button, 'label', '' );
+
+		if ( $url && $label ) {
+			$output .= '<a href="' . esc_url( $url ) . '" class="hppam-empty__button button button--primary alt">' . esc_html( $label ) . '</a>';
 		}
 	}
 

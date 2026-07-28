@@ -2,7 +2,7 @@
 # This file is distributed under the GPLv3.
 msgid ""
 msgstr ""
-"Project-Id-Version: Persistent Account Menu for HivePress 1.4.0\n"
+"Project-Id-Version: Persistent Account Menu for HivePress 1.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/irapidchris-del/Persistent-Account-Menu-for-HivePress/issues\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -161,39 +161,59 @@ msgstr ""
 msgid "Subscriptions"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:326
+#: persistent-account-menu-for-hivepress.php:349
 msgid "Default Menu Items"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:331
+#: persistent-account-menu-for-hivepress.php:354
 msgid "Choose the account menu items that stay visible even when they are empty. Unchecked items are left untouched and keep the default behavior, appearing only once there is something to show."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:336
+#: persistent-account-menu-for-hivepress.php:359
 msgid "Menu Items"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:968
+#: persistent-account-menu-for-hivepress.php:384
+msgid "Customize the button on this empty page. Leave a field blank to keep the default."
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:385
+msgid "This page has no button by default. Set both a label and a URL to add one."
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:391
+msgid "Button Label"
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:398
+msgid "Button URL"
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:399
+msgid "Enter a full URL or a relative path like /listings."
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:1037
 msgid "See the GitHub releases page for the changelog."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:983
+#: persistent-account-menu-for-hivepress.php:1052
 msgid "Check for updates"
 msgstr ""
 
 #. translators: %s: new version number.
-#: persistent-account-menu-for-hivepress.php:1043
+#: persistent-account-menu-for-hivepress.php:1112
 msgid "A new version of Persistent Account Menu for HivePress (%s) is available."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:1046
+#: persistent-account-menu-for-hivepress.php:1115
 msgid "Persistent Account Menu for HivePress is up to date."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:1049
+#: persistent-account-menu-for-hivepress.php:1118
 msgid "Could not reach GitHub to check for updates. Please try again later."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:1094
+#: persistent-account-menu-for-hivepress.php:1163
 msgid "Could not rename the update directory."
 msgstr ""

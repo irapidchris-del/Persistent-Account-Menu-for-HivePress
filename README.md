@@ -26,6 +26,8 @@ Internals are source-verified against HivePress 1.7.26, Favorites 1.2.2, Message
 
 Under **HivePress → Settings → Default Menu Items** you can pick which menu items are force-displayed. Until the setting is saved for the first time, all items are forced. Unchecked items are left completely untouched — they revert to the default HivePress behavior and only appear once there is something to show. Only items whose extension is active are listed.
 
+The same tab also lets you customize the button on each placeholder page: override the button label, point the button at a custom URL (full URL or a relative path like `/listings`), or add a button to pages that have none by default by setting both fields. Blank fields keep the defaults.
+
 ## Requirements
 
 - WordPress 5.8 or newer
