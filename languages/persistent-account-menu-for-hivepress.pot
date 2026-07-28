@@ -2,7 +2,7 @@
 # This file is distributed under the GPLv3.
 msgid ""
 msgstr ""
-"Project-Id-Version: Persistent Account Menu for HivePress 1.5.0\n"
+"Project-Id-Version: Persistent Account Menu for HivePress 1.5.1\n"
 "Report-Msgid-Bugs-To: https://github.com/irapidchris-del/Persistent-Account-Menu-for-HivePress/issues\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -197,23 +197,27 @@ msgstr ""
 msgid "See the GitHub releases page for the changelog."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:1052
+#: persistent-account-menu-for-hivepress.php:1055
+msgid "Settings"
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:1071
 msgid "Check for updates"
 msgstr ""
 
 #. translators: %s: new version number.
-#: persistent-account-menu-for-hivepress.php:1112
+#: persistent-account-menu-for-hivepress.php:1131
 msgid "A new version of Persistent Account Menu for HivePress (%s) is available."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:1115
+#: persistent-account-menu-for-hivepress.php:1134
 msgid "Persistent Account Menu for HivePress is up to date."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:1118
+#: persistent-account-menu-for-hivepress.php:1137
 msgid "Could not reach GitHub to check for updates. Please try again later."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:1163
+#: persistent-account-menu-for-hivepress.php:1182
 msgid "Could not rename the update directory."
 msgstr ""

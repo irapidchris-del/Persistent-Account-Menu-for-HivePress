@@ -3,7 +3,7 @@
  * Plugin Name: Persistent Account Menu for HivePress
  * Plugin URI: https://github.com/irapidchris-del/Persistent-Account-Menu-for-HivePress
  * Description: Keeps HivePress account menu items visible even when they are empty, and replaces each empty page with a helpful notice, icon and button.
- * Version: 1.5.0
+ * Version: 1.5.1
  * Author: Chris B
  * Author URI: https://community.hivepress.io/u/chrisb
  * Text Domain: persistent-account-menu-for-hivepress
@@ -1040,6 +1040,25 @@ function get_plugin_information( $result, $action, $args ) {
 }
 
 add_filter( 'plugins_api', __NAMESPACE__ . '\\get_plugin_information', 10, 3 );
+
+/**
+ * Adds the settings link to the plugin row.
+ *
+ * The link is only shown while HivePress is active, since the settings
+ * tab does not exist without it.
+ *
+ * @param array<string> $links Plugin action links.
+ * @return array<string>
+ */
+function add_settings_link( $links ) {
+	if ( current_user_can( 'manage_options' ) && function_exists( 'hivepress' ) ) {
+		array_unshift( $links, '<a href="' . esc_url( admin_url( 'admin.php?page=hp_settings&tab=persistent_menu' ) ) . '">' . esc_html__( 'Settings', 'persistent-account-menu-for-hivepress' ) . '</a>' );
+	}
+
+	return $links;
+}
+
+add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), __NAMESPACE__ . '\\add_settings_link' );
 
 /**
  * Adds the manual update check link to the plugin row.
