@@ -2,7 +2,7 @@
 
 Keeps HivePress account menu items visible even when they are empty, and replaces each empty page with a helpful notice, icon and button.
 
-By default, HivePress and its extensions only show an account menu item once there is something to list — no favorites means no Favorites link, no bookings means no Bookings link. That keeps menus tidy, but it also hides features from new users. This plugin keeps the menu items in place and turns each empty page into a friendly empty state with a call to action.
+By default, HivePress and its extensions only show an account menu item once there is something to list: no favourites means no Favorites link, no bookings means no Bookings link. That keeps menus tidy, but it also hides features from new users. This plugin keeps the menu items in place and turns each empty page into a friendly empty state with a call to action.
 
 ## Managed menu items
 
@@ -20,13 +20,13 @@ Items are only forced when the matching extension is active, and vendor-only ite
 | Orders, Placed Orders, Payouts | Marketplace / WooCommerce |
 | Subscriptions | WooCommerce Subscriptions |
 
-Internals are source-verified against HivePress 1.7.26, Favorites 1.2.2, Messages 1.4.0, Bookings 1.5.5, Marketplace 1.3.15, Memberships 2.2.0, Requests 1.2.5 and Search Alerts 1.1.3.
+Internals are source-verified against HivePress 1.7.27, Favorites 1.2.2, Messages 1.4.0, Bookings 1.5.5, Marketplace 1.3.15, Memberships 2.2.0, Requests 1.2.5 and Search Alerts 1.1.3.
 
 ## Settings
 
-Under **HivePress → Settings → Default Menu Items** you can pick which menu items are force-displayed. Until the setting is saved for the first time, all items are forced. Unchecked items are left completely untouched — they revert to the default HivePress behavior and only appear once there is something to show. Only items whose extension is active are listed.
+Under **HivePress → Settings → Default Menu Items** you can pick which menu items are force-displayed. Until the setting is saved for the first time, all items are forced. Unticked items are left completely untouched and revert to the default HivePress behaviour, appearing only once there is something to show. Only items whose extension is active are listed.
 
-The same tab also lets you customize the button on each placeholder page: override the button label, point the button at a custom URL (full URL or a relative path like `/listings`), or add a button to pages that have none by default by setting both fields. Blank fields keep the defaults.
+The same tab also lets you customise the button on each placeholder page: override the button label, point the button at a custom URL (full URL or a relative path like `/listings`), or add a button to pages that have none by default by setting both fields. Blank fields keep the defaults.
 
 ## Requirements
 
@@ -42,20 +42,22 @@ The same tab also lets you customize the button on each placeholder page: overri
 
 ## Updates
 
-The plugin checks this GitHub repository for new releases and shows updates in your WordPress dashboard just like any other plugin — including one-click and automatic updates. You can also click **Check for updates** in the plugin's row on the Plugins screen to check immediately.
+The plugin checks this GitHub repository for new releases and shows updates in your WordPress dashboard just like any other plugin, including one-click and automatic updates. You can also click **Check for updates** in the plugin's row on the Plugins screen to check immediately.
 
 ## Translations and rewording
 
-All of the plugin's texts — notices, button labels and admin messages — are translatable under the `persistent-account-menu-for-hivepress` text domain, with a ready-made template in `languages/`. Use a plugin like [Loco Translate](https://wordpress.org/plugins/loco-translate/) to translate them, or to simply reword any text in your own language: create a translation for your site's language and only fill in the strings you want to change.
+All of the plugin's texts (notices, button labels and admin messages) are translatable under the `persistent-account-menu-for-hivepress` text domain, with a ready-made template in `languages/`. Use a plugin like [Loco Translate](https://wordpress.org/plugins/loco-translate/) to translate them, or to simply reword any text in your own language: create a translation for your site's language and only fill in the strings you want to change.
+
+When Loco asks where to save the translation, choose the **System** location (`wp-content/languages/plugins/`). WordPress loads that folder automatically, and it survives plugin updates. Translations saved to the plugin's own `languages/` folder load too — HivePress core registers that folder for itself and all of its official extensions, and this plugin does the same — but that folder is replaced wholesale on every plugin update, so the System location is the safe home for your work.
 
 The "Received Orders" and "Placed Orders" labels intentionally reuse the `hivepress-marketplace` text domain so they always match the wording used by the Marketplace extension; reword those under that text domain instead.
 
-## Customization
+## Customisation
 
 Two filters are provided:
 
-- `hppam/v1/items` — add, remove or adjust the managed items, including notice text, icon codepoint and button.
-- `hppam/v1/notice_html` — filter the rendered empty-state notice HTML.
+- `hppam/v1/items`: add, remove or adjust the managed items, including notice text, icon codepoint and button.
+- `hppam/v1/notice_html`: filter the rendered empty-state notice HTML.
 
 For example, to stop forcing the Messages item:
 
@@ -73,4 +75,4 @@ Publish a GitHub release with a tag matching the plugin version (for example `v1
 
 ## License
 
-GPLv3 — see the [LICENSE](LICENSE) file. This matches the license used across the HivePress ecosystem.
+GPLv3, see the [LICENSE](LICENSE) file. This matches the licence used across the HivePress ecosystem.
