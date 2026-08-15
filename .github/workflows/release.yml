@@ -9,7 +9,7 @@ on:
         description: 'Release tag (e.g. v1.2.0)'
         required: true
       notes:
-        description: 'Release notes (Markdown, optional — auto-generated if empty)'
+        description: 'Release notes (Markdown, optional, auto-generated if empty)'
         required: false
         default: ''
 
@@ -22,10 +22,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The cp lines are an allowlist: a top-level file missing here is
+      # silently absent from every release while local testing still passes.
+      # Update this list in the same commit as any new top-level path.
       - name: Build plugin zip
         run: |
           mkdir -p build/persistent-account-menu-for-hivepress
-          cp persistent-account-menu-for-hivepress.php README.md LICENSE build/persistent-account-menu-for-hivepress/
+          cp persistent-account-menu-for-hivepress.php uninstall.php readme.txt README.md LICENSE build/persistent-account-menu-for-hivepress/
           cp -r languages build/persistent-account-menu-for-hivepress/
           cd build
           zip -r persistent-account-menu-for-hivepress.zip persistent-account-menu-for-hivepress

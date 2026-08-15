@@ -2,14 +2,16 @@
 # This file is distributed under the GPLv3.
 msgid ""
 msgstr ""
-"Project-Id-Version: Persistent Account Menu for HivePress 1.5.1\n"
+"Project-Id-Version: Persistent Account Menu for HivePress 1.6.1\n"
 "Report-Msgid-Bugs-To: https://github.com/irapidchris-del/Persistent-Account-Menu-for-HivePress/issues\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-07-28T00:00:00+00:00\n"
+"POT-Creation-Date: 2026-08-14T14:44:02+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Language-Team: \n"
+"X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: persistent-account-menu-for-hivepress\n"
 
 #. Plugin Name of the plugin
@@ -37,187 +39,256 @@ msgstr ""
 msgid "https://community.hivepress.io/u/chrisb"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:65
+#: persistent-account-menu-for-hivepress.php:57
 msgid "Listings"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:70
+#: persistent-account-menu-for-hivepress.php:62
 msgid "You haven't added any listings yet. Once you add your first listing, you can return to this page to view, edit and manage it."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:72 persistent-account-menu-for-hivepress.php:133
+#: persistent-account-menu-for-hivepress.php:64
+#: persistent-account-menu-for-hivepress.php:125
 msgid "Add listing"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:80
+#: persistent-account-menu-for-hivepress.php:72
 msgid "Requests"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:85
+#: persistent-account-menu-for-hivepress.php:77
 msgid "You haven't posted any requests yet. Once you post a request, you can return to this page to manage it and review offers."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:87
+#: persistent-account-menu-for-hivepress.php:79
 msgid "Post a request"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:95
+#: persistent-account-menu-for-hivepress.php:87
 msgid "Offers"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:100
+#: persistent-account-menu-for-hivepress.php:92
 msgid "You haven't made any offers yet. When you make an offer on a request, it will appear here."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:102
+#: persistent-account-menu-for-hivepress.php:94
 msgid "Browse requests"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:110
+#: persistent-account-menu-for-hivepress.php:102
 msgid "Favorites"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:115
-msgid "You haven't added any listings to your favorites yet. Once you click the heart icon on a listing, you can return to this page to find the listing more easily next time."
+#: persistent-account-menu-for-hivepress.php:107
+msgid "You haven't added any listings to your favourites yet. Once you click the heart icon on a listing, you can return to this page to find the listing more easily next time."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:117 persistent-account-menu-for-hivepress.php:148 persistent-account-menu-for-hivepress.php:163 persistent-account-menu-for-hivepress.php:179
+#: persistent-account-menu-for-hivepress.php:109
+#: persistent-account-menu-for-hivepress.php:140
+#: persistent-account-menu-for-hivepress.php:155
+#: persistent-account-menu-for-hivepress.php:171
 msgid "Browse listings"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:125
+#: persistent-account-menu-for-hivepress.php:117
 msgid "Calendar (vendors)"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:131
+#: persistent-account-menu-for-hivepress.php:123
 msgid "Your calendar shows the bookings made for your listings. Add a listing to get started."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:141
+#: persistent-account-menu-for-hivepress.php:133
 msgid "Saved Searches"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:146
+#: persistent-account-menu-for-hivepress.php:138
 msgid "You haven't saved any searches yet. Save a search to be notified when new matching listings are added."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:156
+#: persistent-account-menu-for-hivepress.php:148
 msgid "Bookings"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:161
+#: persistent-account-menu-for-hivepress.php:153
 msgid "You don't have any bookings yet. When you make or receive a booking, the details will appear here."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:171
+#: persistent-account-menu-for-hivepress.php:163
 msgid "Messages"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:177
+#: persistent-account-menu-for-hivepress.php:169
 msgid "You haven't exchanged any messages yet. When you send or receive a message, the conversation will appear here."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:187
+#: persistent-account-menu-for-hivepress.php:179
 msgid "Membership"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:192
+#: persistent-account-menu-for-hivepress.php:184
 msgid "You don't have a membership yet. Choose a plan to get started."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:194
+#: persistent-account-menu-for-hivepress.php:186
 msgid "View plans"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:202
+#: persistent-account-menu-for-hivepress.php:194
 msgid "Received Orders (vendors)"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:208
+#: persistent-account-menu-for-hivepress.php:200
 msgid "You haven't received any orders yet. When a customer places an order with you, it will appear here."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:214
+#: persistent-account-menu-for-hivepress.php:206
 msgid "Payouts (vendors)"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:220
+#: persistent-account-menu-for-hivepress.php:212
 msgid "You don't have any payouts yet. Once you request a payout, its status will appear here."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:231
+#: persistent-account-menu-for-hivepress.php:223
 msgid "Orders (WooCommerce)"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:232
+#: persistent-account-menu-for-hivepress.php:224
 msgid "Orders"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:239
+#: persistent-account-menu-for-hivepress.php:231
 msgid "Subscriptions (WooCommerce)"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:240
+#: persistent-account-menu-for-hivepress.php:232
 msgid "Subscriptions"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:349
+#: persistent-account-menu-for-hivepress.php:466
+msgid "Choose the account menu items that stay visible even when they are empty. Unticked items are left untouched and keep the default behaviour, appearing only once there is something to show."
+msgstr ""
+
+#. translators: %s: comma-separated list of page names.
+#: persistent-account-menu-for-hivepress.php:475
+#, php-format
+msgid "Note: you have customised these pages under HivePress > Templates, so they show your own layout instead of the notice below: %s. The menu items themselves still stay visible. To use the notice again, delete that template in HivePress > Templates."
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:481
 msgid "Default Menu Items"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:354
-msgid "Choose the account menu items that stay visible even when they are empty. Unchecked items are left untouched and keep the default behavior, appearing only once there is something to show."
-msgstr ""
-
-#: persistent-account-menu-for-hivepress.php:359
+#: persistent-account-menu-for-hivepress.php:486
 msgid "Menu Items"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:384
-msgid "Customize the button on this empty page. Leave a field blank to keep the default."
+#: persistent-account-menu-for-hivepress.php:492
+msgid "Visible Items"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:385
+#: persistent-account-menu-for-hivepress.php:493
+msgid "Tick an item to keep it visible even when its page is empty."
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:518
+msgid "Customise the button on this empty page. Leave a field blank to keep the default."
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:519
 msgid "This page has no button by default. Set both a label and a URL to add one."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:391
+#: persistent-account-menu-for-hivepress.php:525
 msgid "Button Label"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:398
+#: persistent-account-menu-for-hivepress.php:526
+msgid "Enter the text shown on the button, for example \"Add listing\"."
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:533
 msgid "Button URL"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:399
+#: persistent-account-menu-for-hivepress.php:534
 msgid "Enter a full URL or a relative path like /listings."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:1037
+#: persistent-account-menu-for-hivepress.php:554
+msgid "Removing the Plugin"
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:555
+msgid "Your settings on this page are kept if you delete this plugin, so you can reinstall it and carry on where you left off. WordPress shows its own warning on the delete screen saying the data goes too, but that warning is the same for every plugin and does not apply here unless you tick the box below. Switching the plugin off never removes anything."
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:560
+msgid "Delete All Data"
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:561
+msgid "Delete everything when this plugin is deleted"
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:562
+msgid "Leave this unticked unless you are certain. With it ticked, deleting the plugin also removes your choice of which menu items stay visible and every button label and button URL you have set on this page. It cannot be undone and nothing asks you to confirm at the time, so copy down anything you want to keep first. Your listings, bookings, messages and every other piece of HivePress content are never touched either way, because this plugin does not create any."
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:1424
 msgid "See the GitHub releases page for the changelog."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:1055
+#. translators: %s: link to the HivePress plugin.
+#: persistent-account-menu-for-hivepress.php:1453
+#, php-format
+msgid "Persistent Account Menu for HivePress requires the %s plugin to be installed and active. Until then, this plugin does nothing."
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:1495
+msgid "Donate"
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:1541
+msgid "If this plugin saved you time or money, consider "
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:1548
+msgid "buying me a coffee"
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:1551
+msgid ". Sharing these tools for free takes a lot of time and resources, and your support helps me keep doing it for the community. Thank you!"
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:1572
 msgid "Settings"
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:1071
+#: persistent-account-menu-for-hivepress.php:1588
 msgid "Check for updates"
 msgstr ""
 
 #. translators: %s: new version number.
-#: persistent-account-menu-for-hivepress.php:1131
+#: persistent-account-menu-for-hivepress.php:1660
+#, php-format
 msgid "A new version of Persistent Account Menu for HivePress (%s) is available."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:1134
+#: persistent-account-menu-for-hivepress.php:1663
 msgid "Persistent Account Menu for HivePress is up to date."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:1137
+#: persistent-account-menu-for-hivepress.php:1666
+msgid "No releases have been published for this plugin yet, so there is nothing to update to. Your copy is working normally."
+msgstr ""
+
+#: persistent-account-menu-for-hivepress.php:1669
 msgid "Could not reach GitHub to check for updates. Please try again later."
 msgstr ""
 
-#: persistent-account-menu-for-hivepress.php:1182
+#: persistent-account-menu-for-hivepress.php:1714
 msgid "Could not rename the update directory."
 msgstr ""

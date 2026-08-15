@@ -3,7 +3,7 @@
  * Plugin Name: Persistent Account Menu for HivePress
  * Plugin URI: https://github.com/irapidchris-del/Persistent-Account-Menu-for-HivePress
  * Description: Keeps HivePress account menu items visible even when they are empty, and replaces each empty page with a helpful notice, icon and button.
- * Version: 1.5.1
+ * Version: 1.6.1
  * Author: Chris B
  * Author URI: https://community.hivepress.io/u/chrisb
  * Text Domain: persistent-account-menu-for-hivepress
@@ -25,27 +25,19 @@ use HivePress\Helpers as hp;
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Loads the plugin translations.
- *
- * Translations are loaded from the standard locations, so translation
- * plugins like Loco Translate can save custom wordings for any of the
- * plugin's texts under the `persistent-account-menu-for-hivepress`
- * text domain.
- *
- * @return void
+/*
+ * Translations load through WordPress's just-in-time mechanism from the
+ * system location (`wp-content/languages/plugins/`), the same as HivePress
+ * core and every official extension: none of them calls
+ * `load_plugin_textdomain()`, and bundled `.mo` files would not be
+ * auto-loaded anyway. Only the POT template ships in `languages/`.
  */
-function load_textdomain() {
-	load_plugin_textdomain( 'persistent-account-menu-for-hivepress', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-}
-
-add_action( 'init', __NAMESPACE__ . '\\load_textdomain', 1 );
 
 /**
  * Gets the default managed menu items.
  *
  * Routes, orders, display conditions, empty-page redirects and page
- * block names are source-verified against HivePress 1.7.26,
+ * block names are source-verified against HivePress 1.7.27,
  * Favorites 1.2.2, Messages 1.4.0, Bookings 1.5.5, Marketplace 1.3.15,
  * Memberships 2.2.0, Requests 1.2.5 and Search Alerts 1.1.3. Items
  * whose route is not registered (extension inactive) are skipped
@@ -112,7 +104,7 @@ function get_default_items() {
 			'_order' => 20,
 			'notice' => [
 				'icon'   => 'f004',
-				'text'   => __( "You haven't added any listings to your favorites yet. Once you click the heart icon on a listing, you can return to this page to find the listing more easily next time.", 'persistent-account-menu-for-hivepress' ),
+				'text'   => __( "You haven't added any listings to your favourites yet. Once you click the heart icon on a listing, you can return to this page to find the listing more easily next time.", 'persistent-account-menu-for-hivepress' ),
 				'button' => [
 					'label' => __( 'Browse listings', 'persistent-account-menu-for-hivepress' ),
 					'route' => 'listings_view_page',
@@ -223,23 +215,36 @@ function get_default_items() {
 		],
 	];
 
-	// Add the WooCommerce items that HivePress core links into the account
-	// menu. These mirror the exact item shape core uses, and their pages
-	// already render native WooCommerce empty states, so no notice is set.
+	/*
+	 * The WooCommerce items that HivePress core links into the account
+	 * menu. Their pages already render native WooCommerce empty states,
+	 * so no notice is set - and, deliberately, NO WooCommerce function
+	 * is called here. This function first runs from the routes filter on
+	 * `init`, before `wp_loaded`, and `wc_get_account_menu_items()`
+	 * loads the available payment gateways to decide its own items -
+	 * on a real site a gateway-conditions plugin then touches the cart,
+	 * and WooCommerce logs a doing-it-wrong for every request (found on
+	 * the freestylr clone: ~50 KB of `get_cart` notices per page view,
+	 * chain alter_routes > wc_get_account_menu_items >
+	 * get_available_payment_gateways > WC_Cart::get_cart). Only the
+	 * endpoint slug is recorded; the live label and URL are resolved at
+	 * menu-build time in `alter_account_menu()`, which is when core's
+	 * own WooCommerce component calls these functions too.
+	 */
 	if ( function_exists( 'wc_get_endpoint_url' ) && function_exists( 'wc_get_page_permalink' ) && function_exists( 'wc_get_account_menu_items' ) ) {
 		$items['orders_view'] = [
-			'title'  => __( 'Orders (WooCommerce)', 'persistent-account-menu-for-hivepress' ),
-			'label'  => hp\get_array_value( wc_get_account_menu_items(), 'orders', __( 'Orders', 'persistent-account-menu-for-hivepress' ) ),
-			'url'    => wc_get_endpoint_url( 'orders', '', wc_get_page_permalink( 'myaccount' ) ),
-			'_order' => 40,
+			'title'       => __( 'Orders (WooCommerce)', 'persistent-account-menu-for-hivepress' ),
+			'label'       => __( 'Orders', 'persistent-account-menu-for-hivepress' ),
+			'wc_endpoint' => 'orders',
+			'_order'      => 40,
 		];
 
 		if ( class_exists( 'WC_Subscriptions' ) ) {
 			$items['subscriptions_view'] = [
-				'title'  => __( 'Subscriptions (WooCommerce)', 'persistent-account-menu-for-hivepress' ),
-				'label'  => hp\get_array_value( wc_get_account_menu_items(), 'subscriptions', __( 'Subscriptions', 'persistent-account-menu-for-hivepress' ) ),
-				'url'    => wc_get_endpoint_url( 'subscriptions', '', wc_get_page_permalink( 'myaccount' ) ),
-				'_order' => 42,
+				'title'       => __( 'Subscriptions (WooCommerce)', 'persistent-account-menu-for-hivepress' ),
+				'label'       => __( 'Subscriptions', 'persistent-account-menu-for-hivepress' ),
+				'wc_endpoint' => 'subscriptions',
+				'_order'      => 42,
 			];
 		}
 	}
@@ -252,17 +257,17 @@ function get_default_items() {
  *
  * Applies the admin selection from HivePress > Settings > Default Menu
  * Items, then the developer filter. Items the admin chose not to force
- * are left completely untouched and keep the stock behavior.
+ * are left completely untouched and keep the stock behaviour.
+ *
+ * Deliberately not cached: `reconcile_items()` can update the selection
+ * options mid-request (while the routes are being built, no less), and a
+ * static here would serve the pre-reconciliation list for the rest of
+ * that request. The inputs are autoloaded options and the statically
+ * cached defaults, so rebuilding is cheap.
  *
  * @return array<string, array<string, mixed>>
  */
 function get_items() {
-	static $items = null;
-
-	if ( null !== $items ) {
-		return $items;
-	}
-
 	$items = get_default_items();
 
 	// Keep only the items enabled in the settings. Until the setting is
@@ -334,6 +339,132 @@ function get_item_options() {
 }
 
 /**
+ * Reconciles the saved menu items with the currently offered choices.
+ *
+ * A `checkboxes` setting stores only the ticked list, which freezes the
+ * set of choices that existed when it was saved. A choice that appears
+ * later, because an extension was activated or a plugin update added an
+ * item, is absent from the stored value, and absent reads as deliberately
+ * unticked, so the new item would stay off with nothing saying a feature
+ * arrived. A separate record of every choice already offered tells the
+ * two apart: anything offered but not recorded is new, so it is switched
+ * on and written into both options, keeping the settings screen, the
+ * record and the behaviour in agreement.
+ *
+ * Runs on `admin_init`, deliberately, rather than on every request. The
+ * check has to write two options when it finds something new, and a
+ * front-end hook would put that write behind an unauthenticated request:
+ * on a busy site every visitor arriving after an extension is activated
+ * would race the same read-modify-write. It is also a settings-screen
+ * concern, so wp-admin is where it belongs. Until an admin loads any
+ * admin page, a newly offered item simply behaves as unticked, which is
+ * the stock HivePress behaviour rather than a fault.
+ *
+ * @return void
+ */
+function reconcile_items() {
+	if ( ! function_exists( 'hivepress' ) ) {
+		return;
+	}
+
+	$enabled = get_option( 'hp_hppam_items', null );
+
+	// Until the setting is saved every item is forced, so there is
+	// nothing to reconcile; the record starts with the first save.
+	if ( null === $enabled ) {
+		return;
+	}
+
+	$offered = array_keys( get_item_options() );
+	$known   = get_option( 'hp_hppam_known_items', null );
+
+	if ( null === $known ) {
+
+		// Seed the record from the current choices, so nothing the
+		// admin already unticked is switched back on.
+		update_option( 'hp_hppam_known_items', $offered );
+
+		return;
+	}
+
+	$new_items = array_diff( $offered, (array) $known );
+
+	if ( ! $new_items ) {
+		return;
+	}
+
+	update_option( 'hp_hppam_items', array_values( array_unique( array_merge( array_filter( (array) $enabled ), $new_items ) ) ) );
+	update_option( 'hp_hppam_known_items', array_values( array_unique( array_merge( (array) $known, $new_items ) ) ) );
+}
+
+add_action( 'admin_init', __NAMESPACE__ . '\\reconcile_items' );
+
+/**
+ * Gets the managed pages whose template the admin has customised.
+ *
+ * `Blocks\Template::render()` has two paths: when any `hp_template` post
+ * is published and one matches this template's name, the page renders
+ * that saved editor content and the template class's own block tree is
+ * never used (`blocks/class-template.php:47-92`). Our notice is injected
+ * into that block tree, so on those pages it cannot appear, with nothing
+ * in the logs to say why. The menu item and the empty-page bounce
+ * suppression are unaffected, since neither goes through the template.
+ *
+ * The template name equals the route name for these pages (core builds
+ * the class as `\HivePress\Templates\{route}`,
+ * `components/class-template.php:220`).
+ *
+ * @return array<string> Item titles, for the settings screen.
+ */
+function get_overridden_pages() {
+	$titles = [];
+
+	if ( ! function_exists( 'hivepress' ) ) {
+		return $titles;
+	}
+
+	$counts = wp_count_posts( 'hp_template' );
+
+	// Cheap gate, exactly the one core uses before querying.
+	if ( ! $counts || ! $counts->publish ) {
+		return $titles;
+	}
+
+	$templates = [];
+
+	foreach ( get_items() as $item ) {
+		if ( isset( $item['notice'], $item['route'] ) ) {
+			$templates[ $item['route'] ] = hp\get_array_value( $item, 'title', $item['route'] );
+		}
+	}
+
+	if ( ! $templates ) {
+		return $titles;
+	}
+
+	$overridden = get_posts(
+		[
+			'post_type'        => 'hp_template',
+			'post_status'      => 'publish',
+			'post_name__in'    => array_keys( $templates ),
+			'posts_per_page'   => count( $templates ),
+			'fields'           => 'ids',
+			'suppress_filters' => false,
+		]
+	);
+
+	foreach ( $overridden as $post_id ) {
+		$name = get_post_field( 'post_name', $post_id );
+
+		if ( isset( $templates[ $name ] ) ) {
+			$titles[] = $templates[ $name ];
+		}
+	}
+
+	return $titles;
+}
+
+/**
  * Adds the plugin settings tab.
  *
  * The tab is rendered and saved by HivePress itself, with the field
@@ -345,22 +476,38 @@ function get_item_options() {
 function alter_settings( $settings ) {
 	$options = get_item_options();
 
+	$description = __( 'Choose the account menu items that stay visible even when they are empty. Unticked items are left untouched and keep the default behaviour, appearing only once there is something to show.', 'persistent-account-menu-for-hivepress' );
+
+	// Warn about pages whose template has been customised, where the
+	// notice cannot be shown. Silence here would read as a plugin fault.
+	$overridden = get_overridden_pages();
+
+	if ( $overridden ) {
+		$description .= ' ' . sprintf(
+			/* translators: %s: comma-separated list of page names. */
+			__( 'Note: you have customised these pages under HivePress > Templates, so they show your own layout instead of the notice below: %s. The menu items themselves still stay visible. To use the notice again, delete that template in HivePress > Templates.', 'persistent-account-menu-for-hivepress' ),
+			implode( ', ', $overridden )
+		);
+	}
+
 	$settings['persistent_menu'] = [
 		'title'    => __( 'Default Menu Items', 'persistent-account-menu-for-hivepress' ),
 		'_order'   => 200,
 
 		'sections' => [
 			'items' => [
-				'description' => __( 'Choose the account menu items that stay visible even when they are empty. Unchecked items are left untouched and keep the default behavior, appearing only once there is something to show.', 'persistent-account-menu-for-hivepress' ),
+				'title'       => __( 'Menu Items', 'persistent-account-menu-for-hivepress' ),
+				'description' => $description,
 				'_order'      => 10,
 
 				'fields'      => [
 					'hppam_items' => [
-						'label'   => __( 'Menu Items', 'persistent-account-menu-for-hivepress' ),
-						'type'    => 'checkboxes',
-						'options' => $options,
-						'default' => array_keys( $options ),
-						'_order'  => 10,
+						'label'       => __( 'Visible Items', 'persistent-account-menu-for-hivepress' ),
+						'description' => __( 'Tick an item to keep it visible even when its page is empty.', 'persistent-account-menu-for-hivepress' ),
+						'type'        => 'checkboxes',
+						'options'     => $options,
+						'default'     => array_keys( $options ),
+						'_order'      => 10,
 					],
 				],
 			],
@@ -381,7 +528,7 @@ function alter_settings( $settings ) {
 			'title'       => $item['title'],
 
 			'description' => $button
-				? __( 'Customize the button on this empty page. Leave a field blank to keep the default.', 'persistent-account-menu-for-hivepress' )
+				? __( 'Customise the button on this empty page. Leave a field blank to keep the default.', 'persistent-account-menu-for-hivepress' )
 				: __( 'This page has no button by default. Set both a label and a URL to add one.', 'persistent-account-menu-for-hivepress' ),
 
 			'_order'      => $order,
@@ -389,6 +536,7 @@ function alter_settings( $settings ) {
 			'fields'      => [
 				'hppam_button_label_' . $name => [
 					'label'       => __( 'Button Label', 'persistent-account-menu-for-hivepress' ),
+					'description' => __( 'Enter the text shown on the button, for example "Add listing".', 'persistent-account-menu-for-hivepress' ),
 					'type'        => 'text',
 					'placeholder' => $button ? hp\get_array_value( $button, 'label', '' ) : '',
 					'_order'      => 10,
@@ -405,6 +553,31 @@ function alter_settings( $settings ) {
 
 		$order += 10;
 	}
+
+	/*
+	 * Its own section, deliberately last.
+	 *
+	 * The section description answers a question WordPress itself
+	 * creates: the delete-confirmation screen prints "(will also delete
+	 * its data)" whenever an uninstall.php exists at all
+	 * (`wp-admin/plugins.php:376-380`), whatever that file does, and
+	 * ours keeps everything unless this box is ticked.
+	 */
+	$settings['persistent_menu']['sections']['removal'] = [
+		'title'       => __( 'Removing the Plugin', 'persistent-account-menu-for-hivepress' ),
+		'description' => __( 'Your settings on this page are kept if you delete this plugin, so you can reinstall it and carry on where you left off. WordPress shows its own warning on the delete screen saying the data goes too, but that warning is the same for every plugin and does not apply here unless you tick the box below. Switching the plugin off never removes anything.', 'persistent-account-menu-for-hivepress' ),
+		'_order'      => $order,
+
+		'fields'      => [
+			'hppam_delete_data' => [
+				'label'       => __( 'Delete All Data', 'persistent-account-menu-for-hivepress' ),
+				'caption'     => __( 'Delete everything when this plugin is deleted', 'persistent-account-menu-for-hivepress' ),
+				'description' => __( 'Leave this unticked unless you are certain. With it ticked, deleting the plugin also removes your choice of which menu items stay visible and every button label and button URL you have set on this page. It cannot be undone and nothing asks you to confirm at the time, so copy down anything you want to keep first. Your listings, bookings, messages and every other piece of HivePress content are never touched either way, because this plugin does not create any.', 'persistent-account-menu-for-hivepress' ),
+				'type'        => 'checkbox',
+				'_order'      => 10,
+			],
+		],
+	];
 
 	return $settings;
 }
@@ -424,11 +597,13 @@ function is_message_storage_enabled() {
 }
 
 /**
- * Checks if the current user has a published vendor profile.
+ * Checks if the current user has a pending or published vendor profile.
  *
  * Used to force vendor-only items for vendors regardless of whether they
- * have data yet. Core's `vendor_id` request context is capability-gated,
- * so the vendor profile is queried directly and cached per request.
+ * have data yet. Draft profiles are excluded on purpose, since those are
+ * abandoned registration attempts rather than real vendors. Core's
+ * `vendor_id` request context is capability-gated, so the vendor profile
+ * is queried directly and cached per request.
  *
  * @return bool
  */
@@ -546,10 +721,14 @@ function alter_account_menu( $menu ) {
 				'route'  => $item['route'],
 				'_order' => $item['_order'],
 			];
-		} elseif ( isset( $item['url'] ) ) {
+		} elseif ( isset( $item['wc_endpoint'] ) && function_exists( 'wc_get_account_menu_items' ) ) {
+
+			// WooCommerce label and URL are resolved HERE, at menu-build
+			// time, never during the routes filter - see the comment in
+			// get_default_items() for the early-cart trap this avoids.
 			$menu['items'][ $name ] = [
-				'label'  => $item['label'],
-				'url'    => $item['url'],
+				'label'  => hp\get_array_value( wc_get_account_menu_items(), $item['wc_endpoint'], hp\get_array_value( $item, 'label', $item['title'] ) ),
+				'url'    => wc_get_endpoint_url( $item['wc_endpoint'], '', wc_get_page_permalink( 'myaccount' ) ),
 				'_order' => $item['_order'],
 			];
 		}
@@ -699,8 +878,11 @@ function filter_redirect( $callbacks, $item ) {
  *
  * Hooked on the base account page template, which fires for every child
  * template because HivePress applies template filters for the whole class
- * chain. The notice only renders when the extension itself left the item
- * out of the native menu, meaning the page is empty.
+ * chain. The vendor calendar is the one managed page outside that chain,
+ * as Bookings' `Vendor_Calendar_Page` extends `Page_Wide` rather than
+ * `User_Account_Page`, so its template filter is hooked directly. The
+ * notice only renders when the extension itself left the item out of the
+ * native menu, meaning the page is empty.
  *
  * @param array<string, mixed> $template Template arguments.
  * @return array<string, mixed>
@@ -722,33 +904,41 @@ function alter_account_page( $template ) {
 			break;
 		}
 
-		$blocks = [
-			'hppam_empty_notice' => [
-				'type'    => 'content',
-				'content' => render_notice( $item['notice'] ),
-				'_order'  => 5,
-			],
-		];
+		// Add the notice above the page content. Blocks are merged with
+		// `merge_blocks` rather than the soon-deprecated `merge_trees`,
+		// in two separate calls: `_merge_blocks` never descends into a
+		// block it has just matched, so the notice (added under
+		// `page_content`) and the blanks (children of `page_content`)
+		// cannot be merged in one pass.
+		hivepress()->template->merge_blocks(
+			$template,
+			[
+				'page_content' => [
+					'blocks' => [
+						'hppam_empty_notice' => [
+							'type'    => 'content',
+							'content' => render_notice( $item['notice'] ),
+							'_order'  => 5,
+						],
+					],
+				],
+			]
+		);
 
 		// Blank the page's own output so the default "Nothing found"
 		// message is not shown alongside the notice.
+		$blanks = [];
+
 		foreach ( hp\get_array_value( $item['notice'], 'blank', [] ) as $block_name ) {
-			$blocks[ $block_name ] = [
+			$blanks[ $block_name ] = [
 				'type'    => 'content',
 				'content' => '',
 			];
 		}
 
-		$template = hp\merge_trees(
-			$template,
-			[
-				'blocks' => [
-					'page_content' => [
-						'blocks' => $blocks,
-					],
-				],
-			]
-		);
+		if ( $blanks ) {
+			hivepress()->template->merge_blocks( $template, $blanks );
+		}
 
 		break;
 	}
@@ -757,6 +947,7 @@ function alter_account_page( $template ) {
 }
 
 add_filter( 'hivepress/v1/templates/user_account_page', __NAMESPACE__ . '\\alter_account_page', 200 );
+add_filter( 'hivepress/v1/templates/vendor_calendar_page', __NAMESPACE__ . '\\alter_account_page', 200 );
 
 /**
  * Renders the empty-state notice.
@@ -795,7 +986,14 @@ function render_notice( $notice ) {
 		$label = hp\get_array_value( $button, 'label', '' );
 
 		if ( $url && $label ) {
-			$output .= '<a href="' . esc_url( $url ) . '" class="hppam-empty__button button button--primary alt">' . esc_html( $label ) . '</a>';
+
+			// `hp-button` is core's structural button class and
+			// `button button--primary` the appearance pair every official
+			// theme styles. `alt` is inert outside WooCommerce pages (all
+			// six themes scope their `.button.alt` rules to
+			// `.woocommerce`), but every official extension CTA carries
+			// it, so it is kept for convention rather than effect.
+			$output .= '<a href="' . esc_url( $url ) . '" class="hppam-empty__button hp-button button button--primary alt">' . esc_html( $label ) . '</a>';
 		}
 	}
 
@@ -828,12 +1026,13 @@ function enqueue_styles() {
 	wp_register_style( 'hppam-frontend', false, [], get_version() );
 	wp_enqueue_style( 'hppam-frontend' );
 
+	// Spacing sticks to core's rem scale and the icon size is a percentage
+	// so type scales with the theme, per the native look-and-feel rules.
 	wp_add_inline_style(
 		'hppam-frontend',
 		'.hppam-empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:3rem 1rem;gap:1rem}
-		.hppam-empty__icon::before{content:attr(data-icon);font-family:"Font Awesome 5 Free","Font Awesome 6 Free","Font Awesome 7 Free";font-weight:900;font-size:2.75rem;line-height:1;opacity:.25}
-		.hppam-empty__text{max-width:26rem;margin:0}
-		.hppam-empty__button{margin-top:.25rem}'
+		.hppam-empty__icon::before{content:attr(data-icon);font-family:"Font Awesome 5 Free","Font Awesome 6 Free","Font Awesome 7 Free";font-weight:900;font-size:275%;line-height:1;opacity:.25}
+		.hppam-empty__text{max-width:26rem;margin:0}'
 	);
 }
 
@@ -875,22 +1074,42 @@ function get_version() {
 }
 
 /**
- * Gets the latest GitHub release details, cached for 6 hours.
+ * Gets the cached lookup result, whatever it says.
+ *
+ * Three shapes are possible: a full release array, `[ 'none' => '1' ]`
+ * when the repository has no published release yet, and an empty array
+ * when the lookup failed.
  *
  * @param bool $force Bypass the cache.
- * @return array<string, string>|null
+ * @return array<string, string>
  */
-function get_latest_release( $force = false ) {
+function get_release_data( $force = false ) {
 	$release = $force ? false : get_site_transient( UPDATE_CACHE_KEY );
 
 	if ( ! is_array( $release ) ) {
 		$release = fetch_latest_release();
 
-		// Failures are cached briefly so the API is not queried repeatedly.
+		// Failures are cached briefly so the API is not queried
+		// repeatedly; the unauthenticated limit is 60 requests an hour.
 		set_site_transient( UPDATE_CACHE_KEY, $release, $release ? 6 * HOUR_IN_SECONDS : HOUR_IN_SECONDS );
 	}
 
-	return $release ? $release : null;
+	return (array) $release;
+}
+
+/**
+ * Gets the latest GitHub release details, cached for 6 hours.
+ *
+ * Returns null unless a real release was found, so callers can never
+ * read a version out of a "no releases yet" or failed lookup.
+ *
+ * @param bool $force Bypass the cache.
+ * @return array<string, string>|null
+ */
+function get_latest_release( $force = false ) {
+	$release = get_release_data( $force );
+
+	return isset( $release['version'] ) ? $release : null;
 }
 
 /**
@@ -905,10 +1124,28 @@ function fetch_latest_release() {
 	$response = wp_remote_get(
 		'https://api.github.com/repos/' . UPDATE_REPO . '/releases/latest',
 		[
-			'timeout' => 10,
-			'headers' => [ 'Accept' => 'application/vnd.github+json' ],
+			'timeout'    => 10,
+			'headers'    => [ 'Accept' => 'application/vnd.github+json' ],
+
+			/*
+			 * Set deliberately. Left out, WordPress fills the header in
+			 * with "WordPress/{version}; {site url}"
+			 * (`wp-includes/class-wp-http.php:211`), which would tell
+			 * GitHub the site's address and its exact WordPress version
+			 * on every check. GitHub only asks that the header identify
+			 * something, so the plugin and its version satisfy it while
+			 * saying nothing about the site.
+			 */
+			'user-agent' => UPDATE_SLUG . '/' . get_version(),
 		]
 	);
+
+	// A 404 means no release has been published yet, which is the normal
+	// state of a new repository rather than a connectivity failure. It is
+	// reported separately so the manual check can say so.
+	if ( ! is_wp_error( $response ) && 404 === wp_remote_retrieve_response_code( $response ) ) {
+		return [ 'none' => '1' ];
+	}
 
 	if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 		return [];
@@ -989,6 +1226,272 @@ function check_for_update( $update, $plugin_data, $plugin_file ) {
 add_filter( 'update_plugins_github.com', __NAMESPACE__ . '\\check_for_update', 10, 3 );
 
 /**
+ * Renders the GitHub release body as HTML for the details popup.
+ *
+ * Release notes are written in Markdown, and WordPress prints the
+ * changelog tab as HTML, so passing the body straight through shows
+ * literal `**bold**` asterisks and runs bullet lists together.
+ *
+ * The body is remote content, so it is escaped FIRST and only then given
+ * the small set of tags below; the result goes through `wp_kses()` as a
+ * second belt. Only the constructs release notes actually use are
+ * handled: headings, bullet and numbered lists, fenced and inline code,
+ * bold (`**` and `__`), italics (guarded `*` and `_`) and http(s) links.
+ * Code spans and URLs are tokenised out before the emphasis rules run
+ * and restored afterwards - see the comment at the tokenising step.
+ *
+ * @param string $notes Release body in Markdown.
+ * @return string
+ */
+function format_release_notes( $notes ) {
+	$text = esc_html( trim( (string) $notes ) );
+
+	/*
+	 * The `/u` flag is not cosmetic here. Without it `\R` also matches the
+	 * single byte 0x85 (NEL), which occurs INSIDE ordinary UTF-8 emoji -
+	 * U+2705 "white heavy check mark" encodes as E2 9C 85 - so a tick in
+	 * the release notes was split mid-character, corrupting the glyph and
+	 * breaking the line in two. Every pattern below is therefore UTF-8
+	 * aware, and a failed match falls back rather than returning null.
+	 */
+	$lines = preg_split( '/\R/u', $text );
+
+	if ( ! is_array( $lines ) ) {
+
+		// Invalid UTF-8, or a PCRE limit on a very large body. Show
+		// something readable rather than an empty changelog.
+		return wpautop( $text );
+	}
+
+	$output   = '';
+	$list_tag = '';
+	$in_fence = false;
+
+	foreach ( $lines as $line ) {
+		$line = rtrim( $line );
+
+		// Fenced code blocks are passed through verbatim, with no inline
+		// formatting applied, so a snippet containing asterisks or
+		// underscores survives intact.
+		if ( preg_match( '/^\s*```/u', $line ) ) {
+			if ( $in_fence ) {
+				$output .= '</code></pre>';
+			} else {
+				$output  .= close_list( $list_tag ) . '<pre><code>';
+				$list_tag = '';
+			}
+
+			$in_fence = ! $in_fence;
+
+			continue;
+		}
+
+		if ( $in_fence ) {
+			$output .= $line . "\n";
+
+			continue;
+		}
+
+		/*
+		 * Tokenise BEFORE transforming, transform, then restore. The
+		 * emphasis patterns must never see the inside of a code span, a
+		 * link URL or a bare URL: an adversarial review proved (by
+		 * execution) that running them over the whole line first turned
+		 * `/docs/_v2_/` into `/docs/emv2/em/` inside an href - esc_url()
+		 * strips only the angle brackets of an injected tag and keeps its
+		 * letters as path text - and chewed `__FILE__` inside backticks
+		 * into straddled, unclosed tags that wp_kses does not rebalance
+		 * (neither pass calls force_balance_tags). Running the link pass
+		 * FIRST is not a fix either: the emphasis rules then eat the
+		 * emitted href markup itself. Placeholders sidestep both orders.
+		 * The token delimiter is a control character that esc_html leaves
+		 * alone and legitimate notes never contain; any real occurrence
+		 * is stripped first so remote content cannot address the token
+		 * table.
+		 */
+		$tokens = [];
+		$line   = str_replace( "\x1a", '', $line );
+
+		// Inline code spans first, held verbatim so their asterisks and
+		// underscores survive.
+		$line = tokenise(
+			'/`([^`]+)`/u',
+			$line,
+			$tokens,
+			function ( $matches ) {
+				return '<code>' . $matches[1] . '</code>';
+			}
+		);
+
+		// Markdown links next. Only http(s) targets are matched at all;
+		// the text was escaped above, so the URL is decoded before
+		// esc_url() sees it. The URL part refuses the token delimiter, so
+		// a backtick pair inside a URL (already lifted out as a code
+		// span, which is also CommonMark's precedence) stops the link
+		// forming rather than producing an anchor with a corrupted
+		// target. Link text is kept verbatim, and MAY contain a code
+		// token - a code span inside link text is legal Markdown.
+		$line = tokenise(
+			'/\[(.+?)\]\((https?:\/\/[^\s)\x1a]+)\)/u',
+			$line,
+			$tokens,
+			function ( $matches ) {
+				return '<a href="' . esc_url( html_entity_decode( $matches[2], ENT_QUOTES ) ) . '">' . $matches[1] . '</a>';
+			}
+		);
+
+		// Bare URLs, kept as plain text but shielded from the emphasis
+		// rules, so an underscore in a pasted URL is never eaten. This
+		// pattern must also refuse the token delimiter: restoration is
+		// single-pass, so a token swallowed into another token would
+		// come back as raw control bytes instead of its content.
+		$line = tokenise(
+			'/https?:\/\/[^\s\x1a]+/u',
+			$line,
+			$tokens,
+			function ( $matches ) {
+				return $matches[0];
+			}
+		);
+
+		// Emphasis, on prose only. Both double markers run before the
+		// single ones so `__FILE__` reads as GitHub renders it (bold
+		// FILE) rather than shedding stray underscores, and the single
+		// rules require non-space, non-marker characters at BOTH ends -
+		// the closing guard is what keeps "*.php and *.js" or "5 * 3"
+		// from italicising half the sentence. The `<>` exclusions stop a
+		// match crossing an already-emitted tag.
+		$line = replace_safely( '/\*\*\*(.+?)\*\*\*/u', '<strong><em>$1</em></strong>', $line );
+		$line = replace_safely( '/\*\*(.+?)\*\*/u', '<strong>$1</strong>', $line );
+		$line = replace_safely( '/__(.+?)__/u', '<strong>$1</strong>', $line );
+		$line = replace_safely( '/\*([^\s*<>](?:[^*<>]*[^\s*<>])?)\*/u', '<em>$1</em>', $line );
+		$line = replace_safely( '/(?<![a-z0-9_])_([^_<>]+?)_(?![a-z0-9_])/iu', '<em>$1</em>', $line );
+
+		// Restore the held-out spans.
+		$line = restore_tokens( $line, $tokens );
+
+		// Bullet and numbered lists, closing the other kind if it changes.
+		$tag  = '';
+		$item = [];
+
+		if ( preg_match( '/^\s*[-*]\s+(.*)$/u', $line, $item ) ) {
+			$tag = 'ul';
+		} elseif ( preg_match( '/^\s*\d+\.\s+(.*)$/u', $line, $item ) ) {
+			$tag = 'ol';
+		}
+
+		if ( $tag !== $list_tag ) {
+			$output  .= close_list( $list_tag ) . ( $tag ? '<' . $tag . '>' : '' );
+			$list_tag = $tag;
+		}
+
+		if ( $tag ) {
+			$output .= '<li>' . $item[1] . '</li>';
+		} elseif ( preg_match( '/^\s*#{1,6}\s+(.*)$/u', $line, $heading ) ) {
+			$output .= '<h4>' . $heading[1] . '</h4>';
+		} elseif ( '' !== trim( $line ) ) {
+			$output .= '<p>' . $line . '</p>';
+		}
+	}
+
+	$output .= close_list( $list_tag );
+
+	if ( $in_fence ) {
+		$output .= '</code></pre>';
+	}
+
+	return wp_kses(
+		$output,
+		[
+			'p'      => [],
+			'h4'     => [],
+			'ul'     => [],
+			'ol'     => [],
+			'li'     => [],
+			'pre'    => [],
+			'strong' => [],
+			'em'     => [],
+			'code'   => [],
+			'a'      => [ 'href' => [] ],
+		]
+	);
+}
+
+/**
+ * Closes an open list, if there is one.
+ *
+ * @param string $tag Currently open list tag, or an empty string.
+ * @return string
+ */
+function close_list( $tag ) {
+	return $tag ? '</' . $tag . '>' : '';
+}
+
+/**
+ * Runs a replacement, keeping the original when the pattern fails.
+ *
+ * `preg_replace()` returns null on a PCRE error, such as the backtrack
+ * limit on a very long line or malformed UTF-8 under the `/u` flag.
+ * Assigning that straight back would silently blank the line.
+ *
+ * @param string $pattern Regular expression.
+ * @param string $replacement Replacement string.
+ * @param string $subject Subject string.
+ * @return string
+ */
+function replace_safely( $pattern, $replacement, $subject ) {
+	$result = preg_replace( $pattern, $replacement, $subject );
+
+	return null === $result ? $subject : $result;
+}
+
+/**
+ * Replaces every match with a placeholder, storing the rendered HTML.
+ *
+ * The placeholder is `\x1A{index}\x1A`; the caller strips any literal
+ * `\x1A` from the line first, so remote content can never collide with
+ * or address the token table.
+ *
+ * @param string   $pattern Regular expression.
+ * @param string   $line Subject line.
+ * @param array    $tokens Token store, passed by reference.
+ * @param callable $render Renders a match into final HTML.
+ * @return string
+ */
+function tokenise( $pattern, $line, &$tokens, $render ) {
+	$result = preg_replace_callback(
+		$pattern,
+		function ( $matches ) use ( &$tokens, $render ) {
+			$tokens[] = call_user_func( $render, $matches );
+
+			return "\x1a" . ( count( $tokens ) - 1 ) . "\x1a";
+		},
+		$line
+	);
+
+	return null === $result ? $line : $result;
+}
+
+/**
+ * Restores tokenised spans into the transformed line.
+ *
+ * @param string $line Transformed line.
+ * @param array  $tokens Token store.
+ * @return string
+ */
+function restore_tokens( $line, $tokens ) {
+	$result = preg_replace_callback(
+		"/\x1a(\\d+)\x1a/",
+		function ( $matches ) use ( $tokens ) {
+			return isset( $tokens[ (int) $matches[1] ] ) ? $tokens[ (int) $matches[1] ] : '';
+		},
+		$line
+	);
+
+	return null === $result ? $line : $result;
+}
+
+/**
  * Provides the plugin details for the update information popup.
  *
  * Without this the "View version x.x.x details" link on the Plugins
@@ -1032,14 +1535,149 @@ function get_plugin_information( $result, $action, $args ) {
 		'requires_php'  => $plugin_data['RequiresPHP'],
 		'last_updated'  => $release['published'],
 		'download_link' => $release['package'],
+
+		// WordPress renders this as "Donate to this plugin" for free.
+		// With no `contributors` returned it lands in the sidebar link
+		// list (`wp-admin/includes/plugin-install.php:705-706`).
+		'donate_link'   => get_support_url(),
 		'sections'      => [
 			'description' => wpautop( esc_html( $plugin_data['Description'] ) ),
-			'changelog'   => $release['notes'] ? wpautop( esc_html( $release['notes'] ) ) : '<p>' . esc_html__( 'See the GitHub releases page for the changelog.', 'persistent-account-menu-for-hivepress' ) . '</p>',
+			'changelog'   => $release['notes'] ? format_release_notes( $release['notes'] ) : '<p>' . esc_html__( 'See the GitHub releases page for the changelog.', 'persistent-account-menu-for-hivepress' ) . '</p>',
 		],
 	];
 }
 
 add_filter( 'plugins_api', __NAMESPACE__ . '\\get_plugin_information', 10, 3 );
+
+/**
+ * Shows a notice when HivePress is missing.
+ *
+ * None of the plugin's filters fire without HivePress, so it would
+ * otherwise sit silently inactive. WordPress 6.5+ blocks activation via
+ * the `Requires Plugins` header; this notice covers older versions and
+ * the case where HivePress is deactivated later.
+ *
+ * @return void
+ */
+function show_missing_hivepress_notice() {
+	if ( function_exists( 'hivepress' ) || ! current_user_can( 'activate_plugins' ) ) {
+		return;
+	}
+
+	// Dismissible, because an undismissable notice on every admin screen
+	// is admin hijacking even when the thing it says is true. WordPress
+	// only hides it for the current page load, so it returns until
+	// HivePress is actually activated.
+	echo '<div class="notice notice-warning is-dismissible"><p>' . wp_kses(
+		sprintf(
+			/* translators: %s: link to the HivePress plugin. */
+			__( 'Persistent Account Menu for HivePress requires the %s plugin to be installed and active. Until then, this plugin does nothing.', 'persistent-account-menu-for-hivepress' ),
+			'<a href="https://wordpress.org/plugins/hivepress/" target="_blank">HivePress</a>'
+		),
+		[
+			'a' => [
+				'href'   => [],
+				'target' => [],
+			],
+		]
+	) . '</p></div>';
+}
+
+add_action( 'admin_notices', __NAMESPACE__ . '\\show_missing_hivepress_notice' );
+
+/**
+ * Gets the author's support page.
+ *
+ * One place, so the settings tab, the Plugins row and the View details
+ * popup can never drift apart.
+ *
+ * @return string
+ */
+function get_support_url() {
+	return 'https://ko-fi.com/chrisbathivepresscommunity';
+}
+
+/**
+ * Adds a quiet Donate link to this plugin's row meta.
+ *
+ * WordPress fires `plugin_row_meta` for EVERY plugin on the screen and
+ * joins the items with a pipe, so without the basename test the link
+ * would appear on every row on the site. The star is a Dashicon rather
+ * than Font Awesome, which wp-admin does not load. The label matches the
+ * wording WordPress itself uses in the details popup ("Donate to this
+ * plugin"), so the two placements read as one ask rather than two.
+ *
+ * @param array<string> $meta Row meta links.
+ * @param string        $plugin_file Plugin file the row belongs to.
+ * @return array<string>
+ */
+function add_row_meta( $meta, $plugin_file ) {
+	if ( plugin_basename( __FILE__ ) === $plugin_file ) {
+		$meta[] = '<a href="' . esc_url( get_support_url() ) . '" target="_blank" rel="noopener noreferrer"><span class="dashicons dashicons-star-filled" style="font-size:14px;line-height:1.3;"></span>' . esc_html__( 'Donate', 'persistent-account-menu-for-hivepress' ) . '</a>';
+	}
+
+	return $meta;
+}
+
+add_filter( 'plugin_row_meta', __NAMESPACE__ . '\\add_row_meta', 10, 2 );
+
+/**
+ * Prints the support line under the settings form.
+ *
+ * A HivePress settings section carrying only a description would be the
+ * tidier home for this, but `Admin::register_settings` skips any section
+ * with no fields (`components/class-admin.php:288`), so a
+ * description-only section renders nothing at all. Appending to the form
+ * from `admin_footer` is the supported way, and inventing a stored
+ * option purely to make a section appear is not.
+ *
+ * @return void
+ */
+function print_support_link() {
+
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only screen check that changes nothing; the capability test below is the gate.
+	$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+	$tab  = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
+	// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+	if ( 'hp_settings' !== $page || 'persistent_menu' !== $tab || ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	?>
+	<script>
+	( function() {
+		var form = document.querySelector( 'form[action*="options.php"]' );
+
+		if ( ! form ) {
+			return;
+		}
+
+		var p = document.createElement( 'p' );
+
+		p.className = 'description';
+		p.style.marginTop = '1.5rem';
+
+		// Built as text plus one anchor, never innerHTML: the wording is translatable and a
+		// translation is not trusted markup.
+		p.appendChild( document.createTextNode( <?php echo wp_json_encode( __( 'If this plugin saved you time or money, consider ', 'persistent-account-menu-for-hivepress' ) ); ?> ) );
+
+		var a = document.createElement( 'a' );
+
+		a.href = <?php echo wp_json_encode( esc_url( get_support_url() ) ); ?>;
+		a.target = '_blank';
+		a.rel = 'noopener noreferrer';
+		a.appendChild( document.createTextNode( <?php echo wp_json_encode( __( 'buying me a coffee', 'persistent-account-menu-for-hivepress' ) ); ?> ) );
+
+		p.appendChild( a );
+		p.appendChild( document.createTextNode( <?php echo wp_json_encode( __( '. Sharing these tools for free takes a lot of time and resources, and your support helps me keep doing it for the community. Thank you!', 'persistent-account-menu-for-hivepress' ) ); ?> ) );
+
+		form.appendChild( p );
+	}() );
+	</script>
+	<?php
+}
+
+add_action( 'admin_footer', __NAMESPACE__ . '\\print_support_link' );
 
 /**
  * Adds the settings link to the plugin row.
@@ -1092,17 +1730,26 @@ function handle_update_check() {
 
 	check_admin_referer( 'hppam_check_updates' );
 
-	$release = get_latest_release( true );
+	$data = get_release_data( true );
 
 	wp_clean_plugins_cache();
 	wp_update_plugins();
 
 	$status = 'none';
 
-	if ( ! $release ) {
+	if ( isset( $data['version'] ) ) {
+		if ( version_compare( $data['version'], get_version(), '>' ) ) {
+			$status = 'available';
+		}
+	} elseif ( isset( $data['none'] ) ) {
+
+		// A 404 from the releases endpoint is an answer, not a failure to
+		// get one: it is what every repository says before its first
+		// release. Reporting it as a connectivity error sends people
+		// hunting a network fault that does not exist.
+		$status = 'unreleased';
+	} else {
 		$status = 'error';
-	} elseif ( version_compare( $release['version'], get_version(), '>' ) ) {
-		$status = 'available';
 	}
 
 	wp_safe_redirect( add_query_arg( 'hppam_checked', $status, self_admin_url( 'plugins.php' ) ) );
@@ -1118,10 +1765,13 @@ add_action( 'admin_init', __NAMESPACE__ . '\\handle_update_check' );
  * @return void
  */
 function show_update_check_notice() {
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only flag that selects one of three fixed notices; the state-changing request is nonce-checked in handle_update_check().
 	if ( ! isset( $_GET['hppam_checked'] ) || ! current_user_can( 'update_plugins' ) ) {
 		return;
 	}
 
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- See above; the value is sanitised and only compared against fixed strings.
 	$status = sanitize_key( wp_unslash( $_GET['hppam_checked'] ) );
 
 	if ( 'available' === $status ) {
@@ -1133,6 +1783,9 @@ function show_update_check_notice() {
 	} elseif ( 'none' === $status ) {
 		$message = __( 'Persistent Account Menu for HivePress is up to date.', 'persistent-account-menu-for-hivepress' );
 		$class   = 'notice-success';
+	} elseif ( 'unreleased' === $status ) {
+		$message = __( 'No releases have been published for this plugin yet, so there is nothing to update to. Your copy is working normally.', 'persistent-account-menu-for-hivepress' );
+		$class   = 'notice-info';
 	} elseif ( 'error' === $status ) {
 		$message = __( 'Could not reach GitHub to check for updates. Please try again later.', 'persistent-account-menu-for-hivepress' );
 		$class   = 'notice-error';
