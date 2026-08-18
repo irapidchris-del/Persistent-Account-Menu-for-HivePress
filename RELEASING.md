@@ -52,8 +52,9 @@ languages/
 ```
 
 `phpcs.xml`, `RELEASING.md` and `.github/` are deliberately omitted from the
-release; `tools/package.ps1` keeps them, which is why the local zip has a few
-more files than the published one.
+release. `tools/package.ps1` reads the `cp` lines out of the workflow above and
+ships exactly those paths, so a zip built locally carries the same files as the
+published one. It prints `Source: release.yml allowlist` to say so.
 
 ## Before building
 
