@@ -3,7 +3,7 @@ Tags: hivepress, account, menu, empty state, dashboard
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.6.1
+Stable tag: 1.6.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -53,6 +53,11 @@ That is HivePress, not a setting in this plugin. The account home does not have 
 If your site sends members through an onboarding step (completing a vendor profile, for example) that step may now appear sooner. To land people somewhere else, untick the items you do not want at the top of the menu under HivePress, Settings, Default Menu Items.
 
 == Changelog ==
+
+= 1.6.2 =
+* Fixed: the author shown on the Plugins screen now reads "ChrisB @ HivePress Community" and links to the right profile page, matching every other extension in the range.
+* Fixed: the star icon on the "Donate" link no longer sits flush against the word.
+* Removed: the thank-you line under the settings form. The "Donate" link on the Plugins screen and in the plugin details popup is the only place the ask appears now, so it never interrupts you while you are configuring the plugin.
 
 = 1.6.1 =
 * Changed: the Plugins-screen link now reads "Donate", matching the wording WordPress uses in the plugin details popup.
