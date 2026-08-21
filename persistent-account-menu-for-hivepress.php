@@ -3,7 +3,7 @@
  * Plugin Name: Persistent Account Menu for HivePress
  * Plugin URI: https://github.com/irapidchris-del/Persistent-Account-Menu-for-HivePress
  * Description: Keeps HivePress account menu items visible even when they are empty, and replaces each empty page with a helpful notice, icon and button.
- * Version: 1.6.3
+ * Version: 1.6.4
  * Author: ChrisB @ HivePress Community
  * Author URI: https://community.hivepress.io/u/chrisb/summary
  * Text Domain: persistent-account-menu-for-hivepress
@@ -1088,16 +1088,34 @@ function get_version() {
 /**
  * Gets the cached lookup result, whatever it says.
  *
- * Three shapes are possible: a full release array, `[ 'none' => '1' ]`
- * when the repository has no published release yet, and an empty array
- * when the lookup failed.
+ * Four shapes are possible: a full release array, `[ 'none' => '1' ]`
+ * when the repository has no published release yet, an empty array when
+ * the lookup failed, and null while a background refresh is queued and
+ * there is nothing cached to answer with yet.
  *
  * @param bool $force Bypass the cache.
- * @return array<string, string>
+ * @return array<string, string>|null
  */
 function get_release_data( $force = false ) {
 	$cached  = get_site_transient( UPDATE_CACHE_KEY );
 	$release = $force ? false : $cached;
+
+	/*
+	 * A cold cache must not be filled from somebody's page load. WordPress asks every plugin for its
+	 * update details while rendering an admin request, so with several of these installed one such
+	 * request made one blocking call to GitHub after another, in series: a site with nine of them
+	 * measured 18.6 seconds on a settings screen, once, and then behaved perfectly for six hours
+	 * because the answers were cached again. That is the same shape as the listing-save incident, on
+	 * the admin side rather than the public one.
+	 *
+	 * So the fetch moves to a background job and this answers with what is already known. The manual
+	 * Check for updates link still fetches immediately, because there a person is waiting for it.
+	 */
+	if ( ! $force ) {
+		schedule_release_refresh();
+
+		return null;
+	}
 
 	if ( ! is_array( $release ) ) {
 		$release = fetch_latest_release();
@@ -1189,6 +1207,47 @@ function fetch_latest_release() {
 		'published' => (string) ( isset( $data['published_at'] ) ? $data['published_at'] : '' ),
 	];
 }
+
+/**
+ * Queues a background refresh of the release cache.
+ *
+ * Prefers HivePress's scheduler, which is Action Scheduler and already refuses a duplicate of a job
+ * with the same hook and arguments, so repeated admin requests coalesce into one fetch. WP-Cron is
+ * the fallback for the same reason it exists: it also runs the work outside this request.
+ *
+ * Neither is blocking, so where cron itself is starved the cache simply stays cold and no update is
+ * offered until somebody presses Check for updates, which always fetches at once.
+ *
+ * @return void
+ */
+function schedule_release_refresh() {
+	$hook = UPDATE_CACHE_KEY . '_refresh';
+
+	// Assigned and then tested: Core defines no __isset(), so isset( hivepress()->x ) is always
+	// false even for a component that is present and working.
+	$scheduler = function_exists( 'hivepress' ) ? hivepress()->scheduler : null;
+
+	if ( $scheduler ) {
+		$scheduler->add_action( $hook );
+
+		return;
+	}
+
+	if ( ! wp_next_scheduled( $hook ) ) {
+		wp_schedule_single_event( time(), $hook );
+	}
+}
+
+/**
+ * Fills the release cache. Runs from the scheduler, never from a page render.
+ *
+ * @return void
+ */
+function refresh_release() {
+	get_release_data( true );
+}
+
+add_action( UPDATE_CACHE_KEY . '_refresh', __NAMESPACE__ . '\\refresh_release' );
 
 /**
  * Gets the latest release, from github.com in preference to the GitHub API.
@@ -1532,18 +1591,36 @@ function check_for_update( $update, $plugin_data, $plugin_file ) {
 
 	$release = get_latest_release();
 
+	$details = [
+		'id'     => 'https://github.com/' . UPDATE_REPO,
+		'slug'   => UPDATE_SLUG,
+		'plugin' => $plugin_file,
+	];
+
+	/*
+	 * Answer even when there is nothing to update to. WordPress skips this plugin outright on a falsy
+	 * return (wp-includes/update.php:557), and only files an answer under `no_update` when it gets one
+	 * (:589-595) -- and that entry is what carries the `slug` the plugins list needs before it will
+	 * print "View details" (wp-admin/includes/class-wp-plugins-list-table.php:1204, verified).
+	 * Returning false left the row with no slug, so View details, the details popup and the donate link
+	 * inside it were all unreachable from the Plugins screen whenever this plugin was up to date, which
+	 * is almost always, or whenever the release check failed.
+	 */
+
 	if ( ! $release ) {
-		return $update;
+		$details['version'] = isset( $plugin_data['Version'] ) ? $plugin_data['Version'] : '0.0.0';
+
+		return $details;
 	}
 
-	return [
-		'id'      => 'https://github.com/' . UPDATE_REPO,
-		'slug'    => UPDATE_SLUG,
-		'plugin'  => $plugin_file,
-		'version' => $release['version'],
-		'url'     => $release['url'],
-		'package' => $release['package'],
-	];
+	return array_merge(
+		$details,
+		[
+			'version' => $release['version'],
+			'url'     => $release['url'],
+			'package' => $release['package'],
+		]
+	);
 }
 
 add_filter( 'update_plugins_github.com', __NAMESPACE__ . '\\check_for_update', 10, 3 );
